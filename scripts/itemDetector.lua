@@ -32,6 +32,43 @@ titleLabel.Font = Enum.Font.GothamBold
 titleLabel.TextSize = 16
 titleLabel.Parent = mainFrame
 
+-- Adicione após a criação do titleLabel
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.new(0, 30, 0, 30)
+closeButton.Position = UDim2.new(1, -35, 0, 5)
+closeButton.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.new(1, 1, 1)
+closeButton.Font = Enum.Font.GothamBold
+closeButton.TextSize = 14
+closeButton.Parent = mainFrame
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 8)
+closeCorner.Parent = closeButton
+
+-- Adicione os efeitos e função de fechamento
+closeButton.MouseButton1Click:Connect(function()
+    -- Animação de fade out
+    tweenService:Create(mainFrame, TweenInfo.new(0.5), {
+        BackgroundTransparency = 1
+    }):Play()
+    
+    for _, child in ipairs(mainFrame:GetDescendants()) do
+        if child:IsA("TextButton") or child:IsA("TextLabel") or child:IsA("Frame") then
+            tweenService:Create(child, TweenInfo.new(0.5), {
+                BackgroundTransparency = 1,
+                TextTransparency = 1
+            }):Play()
+        end
+    end
+    
+    -- Remove a GUI após a animação
+    task.delay(0.5, function()
+        screenGui:Destroy()
+    end)
+end)
+
 -- Adiciona campo de entrada e botão delete após o título
 local deleteContainer = Instance.new("Frame")
 deleteContainer.Size = UDim2.new(1, -20, 0, 30)

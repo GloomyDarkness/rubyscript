@@ -2,17 +2,24 @@ local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local tweenService = game:GetService("TweenService")
 
--- URLs dos scripts
+-- URLs dos scripts atualizados
 local scripts = {
     {
         name = "🍎 Detector de Frutas",
-        url = "https://raw.githubusercontent.com/SEU_USUARIO/SEU_REPO/main/bloxFruitDetector.lua"
+        url = "https://raw.githubusercontent.com/GloomyDarkness/rubyscript/main/scripts/bloxFruitDetector.lua"
     },
     {
         name = "🌟 Teleporte",
-        url = "https://raw.githubusercontent.com/SEU_USUARIO/SEU_REPO/main/main.lua"
+        url = "https://raw.githubusercontent.com/GloomyDarkness/rubyscript/main/scripts/teleport.lua"
+    },
+    {
+        name = "🔍 Detector de Itens",
+        url = "https://raw.githubusercontent.com/GloomyDarkness/rubyscript/main/scripts/itemDetector.lua"
+    },
+    {
+        name = "⚔️ Farm de Bandits",
+        url = "https://raw.githubusercontent.com/GloomyDarkness/rubyscript/main/scripts/banditFarm.lua"
     }
-    -- Adicione mais scripts aqui
 }
 
 -- Interface do Loader
@@ -23,7 +30,7 @@ screenGui.Parent = player:WaitForChild("PlayerGui")
 -- Painel Principal
 local mainPanel = Instance.new("Frame")
 mainPanel.Name = "MainPanel"
-mainPanel.Size = UDim2.new(0, 250, 0, 300)
+mainPanel.Size = UDim2.new(0, 250, 0, 350)
 mainPanel.Position = UDim2.new(0.5, -125, 0.5, -150)
 mainPanel.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 mainPanel.BorderSizePixel = 0
@@ -48,6 +55,56 @@ title.Parent = mainPanel
 local titleCorner = Instance.new("UICorner")
 titleCorner.CornerRadius = UDim.new(0, 10)
 titleCorner.Parent = title
+
+-- Adicione depois da criação do título
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.new(0, 30, 0, 30)
+closeButton.Position = UDim2.new(1, -35, 0, 5)
+closeButton.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.new(1, 1, 1)
+closeButton.Font = Enum.Font.GothamBold
+closeButton.TextSize = 14
+closeButton.Parent = mainPanel
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 8)
+closeCorner.Parent = closeButton
+
+-- Efeitos do botão de fechar
+closeButton.MouseEnter:Connect(function()
+    tweenService:Create(closeButton, TweenInfo.new(0.3), {
+        BackgroundColor3 = Color3.fromRGB(255, 90, 90)
+    }):Play()
+end)
+
+closeButton.MouseLeave:Connect(function()
+    tweenService:Create(closeButton, TweenInfo.new(0.3), {
+        BackgroundColor3 = Color3.fromRGB(255, 70, 70)
+    }):Play()
+end)
+
+-- Função para fechar com animação
+closeButton.MouseButton1Click:Connect(function()
+    -- Animação de fade out
+    tweenService:Create(mainPanel, TweenInfo.new(0.5), {
+        BackgroundTransparency = 1
+    }):Play()
+    
+    -- Anima todos os elementos filhos
+    for _, child in ipairs(mainPanel:GetDescendants()) do
+        if child:IsA("TextButton") or child:IsA("TextLabel") or child:IsA("Frame") then
+            tweenService:Create(child, TweenInfo.new(0.5), {
+                BackgroundTransparency = 1,
+                TextTransparency = 1
+            }):Play()
+        end
+    end
+    
+    -- Remove a GUI após a animação
+    wait(0.5)
+    screenGui:Destroy()
+end)
 
 -- Container de Botões
 local buttonContainer = Instance.new("Frame")

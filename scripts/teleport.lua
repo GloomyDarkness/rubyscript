@@ -131,6 +131,48 @@ toggleButton.Text = ""
 toggleButton.AutoButtonColor = false
 toggleButton.Parent = mainContainer
 
+-- Adicione após a criação do mainContainer
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.new(0, 30, 0, 30)
+closeButton.Position = UDim2.new(1, -35, 0, 5)
+closeButton.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.new(1, 1, 1)
+closeButton.Font = Enum.Font.GothamBold
+closeButton.TextSize = 14
+closeButton.Parent = mainContainer
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 8)
+closeCorner.Parent = closeButton
+
+-- Adicione os efeitos e função de fechamento
+closeButton.MouseButton1Click:Connect(function()
+    -- Desativa noclip se estiver ativo
+    setNoclip(false)
+    isMoving = false
+    
+    -- Animação de fade out
+    tweenService:Create(mainContainer, TweenInfo.new(0.5), {
+        BackgroundTransparency = 1
+    }):Play()
+    
+    for _, child in ipairs(mainContainer:GetDescendants()) do
+        if child:IsA("TextButton") or child:IsA("TextLabel") or child:IsA("Frame") or child:IsA("ImageLabel") then
+            tweenService:Create(child, TweenInfo.new(0.5), {
+                BackgroundTransparency = 1,
+                TextTransparency = 1,
+                ImageTransparency = 1
+            }):Play()
+        end
+    end
+    
+    -- Remove a GUI após a animação
+    task.delay(0.5, function()
+        screenGui:Destroy()
+    end)
+end)
+
 -- Arredondamento dos cantos
 local uiCorner = Instance.new("UICorner")
 uiCorner.CornerRadius = UDim.new(0, 10)

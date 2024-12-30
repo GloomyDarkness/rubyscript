@@ -127,6 +127,21 @@ local groupCorner = Instance.new("UICorner")
 groupCorner.CornerRadius = UDim.new(0, 8)
 groupCorner.Parent = groupButton
 
+-- Adicione após a criação do mainFrame
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.new(0, 30, 0, 30)
+closeButton.Position = UDim2.new(1, -35, 0, 5)
+closeButton.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.new(1, 1, 1)
+closeButton.Font = Enum.Font.GothamBold
+closeButton.TextSize = 14
+closeButton.Parent = mainFrame
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 8)
+closeCorner.Parent = closeButton
+
 -- Variáveis de controle
 local farming = false
 local lastAttack = 0
@@ -572,20 +587,38 @@ end)
 
 -- Limpeza melhorada
 local function cleanup()
+    -- Desativa o farm
     FarmState.active = false
     if FarmState.connection then
         FarmState.connection:Disconnect()
-        FarmState.connection = nil
     end
-    FarmState.currentTarget = nil
-    PositionSystem:cleanup()
+    
+    -- Limpa todos os sistemas
     BanditController:cleanup()
     GroupingSystem:cleanup()
-    toggleButton.BackgroundColor3 = Color3.fromRGB(85, 170, 255)
-    toggleButton.Text = "Iniciar Farm"
-    statusLabel.Text = "Status: Desativado"
-    BanditController.cleanup()
+    
+    -- Animação de fade out
+    tweenService:Create(mainFrame, TweenInfo.new(0.5), {
+        BackgroundTransparency = 1
+    }):Play()
+    
+    for _, child in ipairs(mainFrame:GetDescendants()) do
+        if child:IsA("TextButton") or child:IsA("TextLabel") or child:IsA("Frame") then
+            tweenService:Create(child, TweenInfo.new(0.5), {
+                BackgroundTransparency = 1,
+                TextTransparency = 1
+            }):Play()
+        end
+    end
+    
+    -- Remove a GUI após a animação
+    task.delay(0.5, function()
+        screenGui:Destroy()
+    end)
 end
+
+-- Conecte o botão de fechar à função cleanup
+closeButton.MouseButton1Click:Connect(cleanup)
 
 -- Eventos de limpeza
 game:GetService("Players").LocalPlayer.CharacterRemoving:Connect(cleanup)
