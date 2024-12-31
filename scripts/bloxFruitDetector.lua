@@ -63,28 +63,44 @@ closeCorner.Parent = closeButton
 
 -- Adicione os efeitos e função de fechamento
 closeButton.MouseButton1Click:Connect(function()
-    -- Limpa recursos
-    cleanupESPs()
+    -- Limpa recursos primeiro
+    if cleanupESPs then
+        cleanupESPs()
+    end
+    
     if updateThread then
-        coroutine.close(updateThread)
+        pcall(function()
+            coroutine.close(updateThread)
+        end)
     end
 
-    -- Animação de fade out
+    local function fadeOut(obj)
+        local properties = {
+            BackgroundTransparency = 1
+        }
+        
+        if obj:IsA("TextLabel") or obj:IsA("TextButton") then
+            properties.TextTransparency = 1
+        end
+        
+        return tweenService:Create(obj, TweenInfo.new(0.5), properties)
+    end
+    
+    -- Anima elementos em ordem
+    local tweens = {}
+    for _, obj in ipairs(mainFrame:GetDescendants()) do
+        local tween = fadeOut(obj)
+        table.insert(tweens, tween)
+        tween:Play()
+    end
+    
+    -- Anima o frame principal por último
     tweenService:Create(mainFrame, TweenInfo.new(0.5), {
         BackgroundTransparency = 1
     }):Play()
     
-    for _, child in ipairs(mainFrame:GetDescendants()) do
-        if child:IsA("TextButton") or child:IsA("TextLabel") or child:IsA("Frame") then
-            tweenService:Create(child, TweenInfo.new(0.5), {
-                BackgroundTransparency = 1,
-                TextTransparency = 1
-            }):Play()
-        end
-    end
-    
-    -- Remove a GUI após a animação
-    task.delay(0.5, function()
+    -- Remove após todas as animações
+    task.delay(0.6, function()
         screenGui:Destroy()
     end)
 end)
