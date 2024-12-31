@@ -2,21 +2,34 @@ local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local tweenService = game:GetService("TweenService")
 
--- Configurações de tema
+-- Configurações de tema atualizadas
 local THEME = {
     primary = Color3.fromRGB(216, 25, 64),    -- #d81940
-    secondary = Color3.fromRGB(30, 30, 35),   -- Fundo escuro
-    accent = Color3.fromRGB(240, 240, 240),   -- Texto claro
-    background = Color3.fromRGB(20, 20, 25),  -- Fundo mais escuro
-    success = Color3.fromRGB(50, 255, 50),
-    warning = Color3.fromRGB(255, 255, 50),
-    error = Color3.fromRGB(255, 50, 50)
+    secondary = Color3.fromRGB(18, 18, 24),   -- Fundo escuro mais profissional
+    accent = Color3.fromRGB(240, 240, 245),   -- Texto claro
+    background = Color3.fromRGB(13, 13, 18),  -- Fundo mais escuro
+    cardBg = Color3.fromRGB(25, 25, 35),      -- Fundo dos cards
+    success = Color3.fromRGB(46, 213, 115),   -- Verde suave
+    warning = Color3.fromRGB(255, 199, 0),    -- Amarelo suave
+    error = Color3.fromRGB(255, 71, 87),      -- Vermelho suave
+    hover = Color3.fromRGB(216, 25, 64, 0.1), -- Hover com transparência
+    border = Color3.fromRGB(40, 40, 50),      -- Bordas sutis
+}
+
+-- Ícones modernos (usando Font Awesome)
+local ICONS = {
+    scripts = "rbxassetid://13449289433",  -- Código
+    settings = "rbxassetid://13449283947", -- Engrenagem
+    about = "rbxassetid://13449264420",    -- Info
+    close = "rbxassetid://13449266958",    -- X
 }
 
 -- URLs dos scripts atualizados
 local scripts = {
     {
-        name = "🍎 Detector de Frutas",
+        name = "Fruit Detector",
+        description = "Auto-detect and teleport to fruits",
+        icon = "rbxassetid://13449289433",
         url = "https://raw.githubusercontent.com/GloomyDarkness/rubyscript/main/scripts/bloxFruitDetector.lua"
     },
     {
@@ -46,6 +59,19 @@ mainContainer.Position = UDim2.new(0.5, -400, 0.5, -250)
 mainContainer.BackgroundColor3 = THEME.background
 mainContainer.BorderSizePixel = 0
 mainContainer.Parent = screenGui
+
+-- Adiciona efeitos de sombra e borda
+local function addShadowEffect(frame)
+    local shadow = Instance.new("ImageLabel")
+    shadow.BackgroundTransparency = 1
+    shadow.Image = "rbxassetid://7919581359"
+    shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+    shadow.ImageTransparency = 0.8
+    shadow.Position = UDim2.new(0, -15, 0, -15)
+    shadow.Size = UDim2.new(1, 30, 1, 30)
+    shadow.ZIndex = frame.ZIndex - 1
+    shadow.Parent = frame
+end
 
 -- Sidebar
 local sidebar = Instance.new("Frame")
@@ -194,55 +220,89 @@ listLayout.Padding = UDim.new(0, 10)
 listLayout.Parent = scriptList
 
 -- Função melhorada para criar botões de script
-local function createScriptButton(name, scriptUrl)
-    local button = Instance.new("TextButton")
-    button.Size = UDim2.new(1, 0, 0, 40)
-    button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    button.Text = name
-    button.TextColor3 = Color3.new(1, 1, 1)
-    button.Font = Enum.Font.GothamSemibold
-    button.TextSize = 14
-    button.Parent = scriptList
-    
-    local buttonCorner = Instance.new("UICorner")
-    buttonCorner.CornerRadius = UDim.new(0, 8)
-    buttonCorner.Parent = button
-    
-    -- Status do script
-    local status = Instance.new("TextLabel")
-    status.Size = UDim2.new(0, 10, 0, 10)
-    status.Position = UDim2.new(0.05, 0, 0.5, -5)
-    status.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
-    status.Text = ""
-    status.Parent = button
-    
-    local statusCorner = Instance.new("UICorner")
-    statusCorner.CornerRadius = UDim.new(1, 0)
-    statusCorner.Parent = status
-    
+local function createScriptButton(scriptInfo)
+    local card = Instance.new("Frame")
+    card.Size = UDim2.new(1, 0, 0, 80)
+    card.BackgroundColor3 = THEME.cardBg
+    card.BorderSizePixel = 0
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 8)
+    corner.Parent = card
+
+    -- Ícone do script
+    local icon = Instance.new("ImageLabel")
+    icon.Size = UDim2.new(0, 40, 0, 40)
+    icon.Position = UDim2.new(0, 15, 0.5, -20)
+    icon.BackgroundTransparency = 1
+    icon.Image = scriptInfo.icon
+    icon.ImageColor3 = THEME.primary
+    icon.Parent = card
+
+    -- Container de informações
+    local infoContainer = Instance.new("Frame")
+    infoContainer.Size = UDim2.new(1, -140, 1, -20)
+    infoContainer.Position = UDim2.new(0, 70, 0, 10)
+    infoContainer.BackgroundTransparency = 1
+    infoContainer.Parent = card
+
+    -- Nome do script
+    local nameLabel = Instance.new("TextLabel")
+    nameLabel.Size = UDim2.new(1, 0, 0, 20)
+    nameLabel.BackgroundTransparency = 1
+    nameLabel.Text = scriptInfo.name
+    nameLabel.TextColor3 = THEME.accent
+    nameLabel.Font = Enum.Font.GothamBold
+    nameLabel.TextSize = 16
+    nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+    nameLabel.Parent = infoContainer
+
+    -- Descrição
+    local descLabel = Instance.new("TextLabel")
+    descLabel.Size = UDim2.new(1, 0, 0, 20)
+    descLabel.Position = UDim2.new(0, 0, 0, 25)
+    descLabel.BackgroundTransparency = 1
+    descLabel.Text = scriptInfo.description
+    descLabel.TextColor3 = Color3.fromRGB(180, 180, 190)
+    descLabel.Font = Enum.Font.Gotham
+    descLabel.TextSize = 14
+    descLabel.TextXAlignment = Enum.TextXAlignment.Left
+    descLabel.Parent = infoContainer
+
+    -- Botão de execução
+    local executeButton = Instance.new("TextButton")
+    executeButton.Size = UDim2.new(0, 80, 0, 32)
+    executeButton.Position = UDim2.new(1, -95, 0.5, -16)
+    executeButton.BackgroundColor3 = THEME.primary
+    executeButton.Text = "Execute"
+    executeButton.TextColor3 = THEME.accent
+    executeButton.Font = Enum.Font.GothamBold
+    executeButton.TextSize = 14
+    executeButton.Parent = card
+
     -- Estado do script
     local isLoaded = false
     
     -- Efeitos do botão
-    button.MouseEnter:Connect(function()
-        tweenService:Create(button, TweenInfo.new(0.3), {
+    executeButton.MouseEnter:Connect(function()
+        tweenService:Create(executeButton, TweenInfo.new(0.3), {
             BackgroundColor3 = Color3.fromRGB(60, 60, 60)
         }):Play()
     end)
     
-    button.MouseLeave:Connect(function()
-        tweenService:Create(button, TweenInfo.new(0.3), {
+    executeButton.MouseLeave:Connect(function()
+        tweenService:Create(executeButton, TweenInfo.new(0.3), {
             BackgroundColor3 = Color3.fromRGB(50, 50, 50)
         }):Play()
     end)
     
     -- Modifica o evento de clique para carregar do GitHub
-    button.MouseButton1Click:Connect(function()
+    executeButton.MouseButton1Click:Connect(function()
         if not isLoaded then
             status.BackgroundColor3 = Color3.fromRGB(255, 255, 0)
             
             local success, result = pcall(function()
-                loadstring(game:HttpGet(scriptUrl))()
+                loadstring(game:HttpGet(scriptInfo.url))()
             end)
             
             if success then
@@ -256,6 +316,8 @@ local function createScriptButton(name, scriptUrl)
             status.BackgroundColor3 = Color3.fromRGB(50, 255, 50)
         end
     end)
+
+    return card
 end
 
 -- Adiciona conteúdo à página Settings
@@ -290,7 +352,7 @@ aboutText.Parent = aboutPage
 
 -- Criar botões para cada script
 for _, scriptInfo in ipairs(scripts) do
-    createScriptButton(scriptInfo.name, scriptInfo.url)
+    createScriptButton(scriptInfo)
 end
 
 -- Tornar o painel arrastável
