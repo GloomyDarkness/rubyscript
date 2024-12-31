@@ -2,6 +2,9 @@ local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local tweenService = game:GetService("TweenService")
 
+-- Adicione no início do arquivo
+local LAYOUT = require(script.Parent.shared_layout)
+
 -- Interface principal
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "ItemDetectorGui"
@@ -34,8 +37,8 @@ titleLabel.Parent = mainFrame
 
 -- Adicione após a criação do titleLabel
 local closeButton = Instance.new("TextButton")
-closeButton.Size = UDim2.new(0, 30, 0, 30)
-closeButton.Position = UDim2.new(1, -35, 0, 5)
+closeButton.Size = LAYOUT.CLOSE_BUTTON.size
+closeButton.Position = LAYOUT.CLOSE_BUTTON.position
 closeButton.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
 closeButton.Text = "X"
 closeButton.TextColor3 = Color3.new(1, 1, 1)
@@ -47,42 +50,63 @@ local closeCorner = Instance.new("UICorner")
 closeCorner.CornerRadius = UDim.new(0, 8)
 closeCorner.Parent = closeButton
 
--- Modifique a função de fechamento
-closeButton.MouseButton1Click:Connect(function()
-    local function fadeOut(obj)
-        local properties = {
-            BackgroundTransparency = 1
-        }
-        
-        if obj:IsA("TextLabel") or obj:IsA("TextButton") then
-            properties.TextTransparency = 1
-        end
-        
-        return tweenService:Create(obj, TweenInfo.new(0.5), properties)
+-- Adicione esta função fadeOut logo após as variáveis iniciais e remova qualquer outra implementação
+local function fadeOut(obj)
+    -- Ignora UICorner e outros objetos que não suportam transparência
+    if obj:IsA("UICorner") or obj:IsA("UIGradient") or obj:IsA("UIStroke") then 
+        return nil
     end
     
-    -- Anima elementos em ordem
+    local properties = {}
+    
+    -- Propriedades específicas para cada tipo de objeto
+    if obj:IsA("Frame") or obj:IsA("TextButton") or obj:IsA("ScrollingFrame") then
+        properties.BackgroundTransparency = 1
+    end
+    
+    if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
+        properties.TextTransparency = 1
+    end
+    
+    if obj:IsA("ImageLabel") or obj:IsA("ImageButton") then
+        properties.ImageTransparency = 1
+    end
+    
+    -- Só cria o tween se houver propriedades para animar
+    if next(properties) then
+        return tweenService:Create(obj, TweenInfo.new(0.5), properties)
+    end
+    return nil
+end
+
+-- Substitua a função closeButton.MouseButton1Click:Connect existente por esta única versão
+closeButton.MouseButton1Click:Connect(function()
     local tweens = {}
     for _, obj in ipairs(mainFrame:GetDescendants()) do
         local tween = fadeOut(obj)
-        table.insert(tweens, tween)
-        tween:Play()
+        if tween then -- Só adiciona se o tween for válido
+            table.insert(tweens, tween)
+            tween:Play()
+        end
     end
     
     -- Anima o frame principal por último
-    tweenService:Create(mainFrame, TweenInfo.new(0.5), {
+    local mainTween = tweenService:Create(mainFrame, TweenInfo.new(0.5), {
         BackgroundTransparency = 1
-    }):Play()
+    })
+    mainTween:Play()
     
     -- Remove após todas as animações
     task.delay(0.6, function()
-        screenGui:Destroy()
+        pcall(function()
+            screenGui:Destroy()
+        end)
     end)
 end)
 
 -- Adiciona campo de entrada e botão delete após o título
 local deleteContainer = Instance.new("Frame")
-deleteContainer.Size = UDim2.new(1, -20, 0, 30)
+deleteContainer.Size = UDim2.new(LAYOUT.CLOSE_BUTTON.safeArea.X.Scale, -20, 0, 30)
 deleteContainer.Position = UDim2.new(0, 10, 0, 35)
 deleteContainer.BackgroundTransparency = 1
 deleteContainer.Parent = mainFrame
@@ -120,7 +144,7 @@ buttonCorner.Parent = deleteButton
 
 -- Lista de itens (movido para antes do ajuste de tamanho)
 local itemList = Instance.new("ScrollingFrame")
-itemList.Size = UDim2.new(1, -20, 1, -80) -- Tamanho já ajustado para acomodar o campo de delete
+itemList.Size = UDim2.new(LAYOUT.CLOSE_BUTTON.safeArea.X.Scale, -20, 1, -80) -- Tamanho já ajustado para acomodar o campo de delete
 itemList.Position = UDim2.new(0, 10, 0, 75) -- Posição já ajustada
 itemList.BackgroundTransparency = 1
 itemList.BorderSizePixel = 0

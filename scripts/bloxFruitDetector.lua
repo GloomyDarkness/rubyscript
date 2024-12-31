@@ -7,6 +7,35 @@ local noclipConnection = nil
 local isMoving = false
 local lastCacheClean = tick()
 
+-- Adicione esta função fadeOut logo após as variáveis iniciais
+local function fadeOut(obj)
+    -- Ignora UICorner e outros objetos que não suportam transparência
+    if obj:IsA("UICorner") or obj:IsA("UIGradient") or obj:IsA("UIStroke") then 
+        return nil
+    end
+    
+    local properties = {}
+    
+    -- Propriedades específicas para cada tipo de objeto
+    if obj:IsA("Frame") or obj:IsA("TextButton") or obj:IsA("ScrollingFrame") then
+        properties.BackgroundTransparency = 1
+    end
+    
+    if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
+        properties.TextTransparency = 1
+    end
+    
+    if obj:IsA("ImageLabel") or obj:IsA("ImageButton") then
+        properties.ImageTransparency = 1
+    end
+    
+    -- Só cria o tween se houver propriedades para animar
+    if next(properties) then
+        return tweenService:Create(obj, TweenInfo.new(0.5), properties)
+    end
+    return nil
+end
+
 -- Interface principal
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "FruitDetectorGui"
@@ -74,34 +103,26 @@ closeButton.MouseButton1Click:Connect(function()
         end)
     end
 
-    local function fadeOut(obj)
-        local properties = {
-            BackgroundTransparency = 1
-        }
-        
-        if obj:IsA("TextLabel") or obj:IsA("TextButton") then
-            properties.TextTransparency = 1
-        end
-        
-        return tweenService:Create(obj, TweenInfo.new(0.5), properties)
-    end
-    
-    -- Anima elementos em ordem
     local tweens = {}
     for _, obj in ipairs(mainFrame:GetDescendants()) do
         local tween = fadeOut(obj)
-        table.insert(tweens, tween)
-        tween:Play()
+        if tween then -- Só adiciona se o tween for válido
+            table.insert(tweens, tween)
+            tween:Play()
+        end
     end
     
     -- Anima o frame principal por último
-    tweenService:Create(mainFrame, TweenInfo.new(0.5), {
+    local mainTween = tweenService:Create(mainFrame, TweenInfo.new(0.5), {
         BackgroundTransparency = 1
-    }):Play()
+    })
+    mainTween:Play()
     
     -- Remove após todas as animações
     task.delay(0.6, function()
-        screenGui:Destroy()
+        pcall(function()
+            screenGui:Destroy()
+        end)
     end)
 end)
 
@@ -565,16 +586,24 @@ local function updateFruitESP(fruit, distance)
     end
 end
 
--- Função para limpar ESPs antigos
+-- Modifique a função cleanupESPs para proteger contra erros
 local function cleanupESPs()
     for name, esp in pairs(fruitESPs) do
-        if not esp.gui.Adornee or not esp.gui.Adornee:IsDescendantOf(game) then
-            esp.gui:Destroy()
-            esp.line:Destroy()
-            esp.att1:Destroy()
-            esp.att2:Destroy()
-            fruitESPs[name] = nil
-        end
+        pcall(function()
+            if esp.gui and esp.gui.Parent then
+                esp.gui:Destroy()
+            end
+            if esp.line and esp.line.Parent then
+                esp.line:Destroy()
+            end
+            if esp.att1 and esp.att1.Parent then
+                esp.att1:Destroy()
+            end
+            if esp.att2 and esp.att2.Parent then
+                esp.att2:Destroy()
+            end
+        end)
+        fruitESPs[name] = nil
     end
 end
 
@@ -589,3 +618,15 @@ game:GetService("RunService").RenderStepped:Connect(function()
         end
     end
 end)
+
+-- Adicione no início do arquivo
+local LAYOUT = require(script.Parent.shared_layout)
+
+-- ...existing code...
+
+-- Ajuste a lista de frutas para respeitar a área segura
+fruitList.Size = UDim2.new(LAYOUT.CLOSE_BUTTON.safeArea.X.Scale, -20, 1, -60)
+
+-- Ajuste o closeButton
+closeButton.Size = LAYOUT.CLOSE_BUTTON.size
+closeButton.Position = LAYOUT.CLOSE_BUTTON.position

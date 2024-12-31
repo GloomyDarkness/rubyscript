@@ -146,37 +146,48 @@ local closeCorner = Instance.new("UICorner")
 closeCorner.CornerRadius = UDim.new(0, 8)
 closeCorner.Parent = closeButton
 
+-- Adicione a função fadeOut antes da função de fechamento
+local function fadeOut(obj)
+    -- Ignora UICorner e outros objetos que não suportam transparência
+    if obj:IsA("UICorner") or obj:IsA("UIGradient") then return end
+    
+    local properties = {}
+    
+    -- Propriedades específicas para cada tipo de objeto
+    if obj:IsA("Frame") or obj:IsA("TextButton") or obj:IsA("ScrollingFrame") then
+        properties.BackgroundTransparency = 1
+    end
+    
+    if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
+        properties.TextTransparency = 1
+    end
+    
+    if obj:IsA("ImageLabel") or obj:IsA("ImageButton") then
+        properties.ImageTransparency = 1
+    end
+    
+    -- Só cria o tween se houver propriedades para animar
+    if next(properties) then
+        return tweenService:Create(obj, TweenInfo.new(0.5), properties)
+    end
+end
+
 -- Modifique a função de fechamento
 closeButton.MouseButton1Click:Connect(function()
     -- Desativa noclip primeiro
     setNoclip(false)
     isMoving = false
     
-    -- Animação de fade out em ordem
-    local function fadeOut(obj)
-        local properties = {
-            BackgroundTransparency = 1
-        }
-        
-        if obj:IsA("TextLabel") or obj:IsA("TextButton") then
-            properties.TextTransparency = 1
-        end
-        if obj:IsA("ImageLabel") then
-            properties.ImageTransparency = 1
-        end
-        
-        return tweenService:Create(obj, TweenInfo.new(0.5), properties)
-    end
-    
-    -- Anima elementos em ordem
     local tweens = {}
     for _, obj in ipairs(mainContainer:GetDescendants()) do
         local tween = fadeOut(obj)
-        table.insert(tweens, tween)
-        tween:Play()
+        if tween then
+            table.insert(tweens, tween)
+            tween:Play()
+        end
     end
     
-    -- Anima o container principal por último
+    -- Anima o frame principal por último
     tweenService:Create(mainContainer, TweenInfo.new(0.5), {
         BackgroundTransparency = 1
     }):Play()
