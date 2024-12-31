@@ -47,7 +47,7 @@ local closeCorner = Instance.new("UICorner")
 closeCorner.CornerRadius = UDim.new(0, 8)
 closeCorner.Parent = closeButton
 
--- Adicione os efeitos e função de fechamento
+-- Modifique a função de fechamento
 closeButton.MouseButton1Click:Connect(function()
     -- Animação de fade out
     tweenService:Create(mainFrame, TweenInfo.new(0.5), {
@@ -55,15 +55,18 @@ closeButton.MouseButton1Click:Connect(function()
     }):Play()
     
     for _, child in ipairs(mainFrame:GetDescendants()) do
-        if child:IsA("TextButton") or child:IsA("TextLabel") or child:IsA("Frame") then
+        if child:IsA("TextButton") or child:IsA("TextLabel") then
             tweenService:Create(child, TweenInfo.new(0.5), {
                 BackgroundTransparency = 1,
                 TextTransparency = 1
             }):Play()
+        elseif child:IsA("Frame") then
+            tweenService:Create(child, TweenInfo.new(0.5), {
+                BackgroundTransparency = 1
+            }):Play()
         end
     end
     
-    -- Remove a GUI após a animação
     task.delay(0.5, function()
         screenGui:Destroy()
     end)

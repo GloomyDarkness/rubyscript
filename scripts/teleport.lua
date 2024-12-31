@@ -157,12 +157,20 @@ closeButton.MouseButton1Click:Connect(function()
         BackgroundTransparency = 1
     }):Play()
     
+    -- Trata elementos específicos separadamente
+    tweenService:Create(shadow, TweenInfo.new(0.5), {
+        ImageTransparency = 1
+    }):Play()
+    
     for _, child in ipairs(mainContainer:GetDescendants()) do
-        if child:IsA("TextButton") or child:IsA("TextLabel") or child:IsA("Frame") or child:IsA("ImageLabel") then
+        if child:IsA("TextButton") or child:IsA("TextLabel") then
             tweenService:Create(child, TweenInfo.new(0.5), {
                 BackgroundTransparency = 1,
-                TextTransparency = 1,
-                ImageTransparency = 1
+                TextTransparency = 1
+            }):Play()
+        elseif child:IsA("Frame") then
+            tweenService:Create(child, TweenInfo.new(0.5), {
+                BackgroundTransparency = 1
             }):Play()
         end
     end

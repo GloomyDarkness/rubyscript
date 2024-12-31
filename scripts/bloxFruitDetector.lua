@@ -5,6 +5,7 @@ local tweenService = game:GetService("TweenService")
 -- Adicione estas variáveis no início do script
 local noclipConnection = nil
 local isMoving = false
+local lastCacheClean = tick()
 
 -- Interface principal
 local screenGui = Instance.new("ScreenGui")

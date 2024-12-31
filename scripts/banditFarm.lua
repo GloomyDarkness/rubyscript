@@ -2,6 +2,7 @@ local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local RunService = game:GetService("RunService")
+local tweenService = game:GetService("TweenService")
 
 -- Configurações do farm
 local FARM_HEIGHT = 15 -- Altura do voo
@@ -597,19 +598,25 @@ local function cleanup()
     BanditController:cleanup()
     GroupingSystem:cleanup()
     
-    -- Animação de fade out
-    tweenService:Create(mainFrame, TweenInfo.new(0.5), {
-        BackgroundTransparency = 1
-    }):Play()
-    
-    for _, child in ipairs(mainFrame:GetDescendants()) do
-        if child:IsA("TextButton") or child:IsA("TextLabel") or child:IsA("Frame") then
-            tweenService:Create(child, TweenInfo.new(0.5), {
-                BackgroundTransparency = 1,
-                TextTransparency = 1
-            }):Play()
+    -- Animação de fade out usando pcall para evitar erros
+    pcall(function()
+        tweenService:Create(mainFrame, TweenInfo.new(0.5), {
+            BackgroundTransparency = 1
+        }):Play()
+        
+        for _, child in ipairs(mainFrame:GetDescendants()) do
+            if child:IsA("TextButton") or child:IsA("TextLabel") then
+                tweenService:Create(child, TweenInfo.new(0.5), {
+                    BackgroundTransparency = 1,
+                    TextTransparency = 1
+                }):Play()
+            elseif child:IsA("Frame") then
+                tweenService:Create(child, TweenInfo.new(0.5), {
+                    BackgroundTransparency = 1
+                }):Play()
+            end
         end
-    end
+    end)
     
     -- Remove a GUI após a animação
     task.delay(0.5, function()
